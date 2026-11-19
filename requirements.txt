@@ -1,0 +1,5 @@
+numpy>=1.26
+pillow>=10
+pyusb>=1.2
+libusb-package>=1.0.26
+av>=12
