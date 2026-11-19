@@ -16,9 +16,9 @@
 
 ---
 
-## 这个项目是做什么的
+## 项目目的
 
-**一句话：把 DJI Goggles 3 的 USB LiveView 画面，变成 Windows 上可显示、可录制、可转发的视频流。**
+**把 DJI Goggles 3 的 USB LiveView 画面，变成 Windows 上可显示、可录制、可转发的视频流。**
 
 G3Viewer 是一个 Windows 桌面端接收器。用一根 USB-C 数据线把 Goggles 3 接到电脑，打开眼镜的 LiveView 共享，程序就能在 PC 上显示眼镜正在看的画面，并支持录制、截图和 RTSP 转发。它不拆机、不需要 Cynthion、不需要手机，也不需要把电脑连到眼镜 Wi-Fi。
 
@@ -29,13 +29,6 @@ G3Viewer 是一个 Windows 桌面端接收器。用一根 USB-C 数据线把 Gog
 - 通过 RTSP 把画面交给 FFmpeg、VLC 等工具；
 - 做 USB/协议诊断，确认眼镜当前处于哪种 USB 模式；
 - 没有眼镜时，用 UDP 或本地文件测试解码链路。
-
-### 它不是什么
-
-- 不是 UVC 摄像头驱动，不会把眼镜变成普通摄像头；
-- 不是硬件改装，不需要拆机、Cynthion 或手机；
-- 不包含 DJI 固件、签名密钥或破解授权代码；
-- 不是 Mission Planner 插件；RTSP 只是提供给外部播放器/地面站使用。
 
 ## 为什么需要它
 
