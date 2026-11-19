@@ -16,9 +16,30 @@
 
 ---
 
-## 项目简介
+## 这个项目是做什么的
 
-DJI Goggles 3 插上 PC 后，设备管理器里能看到：
+**一句话：把 DJI Goggles 3 的 USB LiveView 画面，变成 Windows 上可显示、可录制、可转发的视频流。**
+
+G3Viewer 是一个 Windows 桌面端接收器。用一根 USB-C 数据线把 Goggles 3 接到电脑，打开眼镜的 LiveView 共享，程序就能在 PC 上显示眼镜正在看的画面，并支持录制、截图和 RTSP 转发。它不拆机、不需要 Cynthion、不需要手机，也不需要把电脑连到眼镜 Wi-Fi。
+
+### 典型用途
+
+- 在 PC 大屏上查看 Goggles 3 的实时画面；
+- 录制原始 H.264 素材、保存关键帧；
+- 通过 RTSP 把画面交给 FFmpeg、VLC 等工具；
+- 做 USB/协议诊断，确认眼镜当前处于哪种 USB 模式；
+- 没有眼镜时，用 UDP 或本地文件测试解码链路。
+
+### 它不是什么
+
+- 不是 UVC 摄像头驱动，不会把眼镜变成普通摄像头；
+- 不是硬件改装，不需要拆机、Cynthion 或手机；
+- 不包含 DJI 固件、签名密钥或破解授权代码；
+- 不是 Mission Planner 插件；RTSP 只是提供给外部播放器/地面站使用。
+
+## 为什么需要它
+
+Goggles 3 插上 PC 后，普通播放器看不到画面，不是线坏了，也不是驱动没装，而是眼镜的 **PC/OTG 模式根本没有暴露 UVC 摄像头**。设备管理器里只能看到：
 
 ```text
 2CA3:0020  rndis,mass_storage,bulk,acm
@@ -27,9 +48,7 @@ MI03–MI07  5 个厂商 Bulk 接口
 MI04       每秒 77 字节 DUML 心跳：40 00 81 "ZV902" ...
 ```
 
-这是 **PC/OTG 文件模式**，本身没有 UVC 视频。天空端只让眼镜屏幕有画面，不会主动把视频推到 Bulk 端点。
-
-真正的视频在另一个开关后面：**LiveView 共享 / 实时画面共享**。打开后，视频走 **USB RNDIS 网卡上的 UDP**：
+天空端只让眼镜屏幕有画面，不会主动把视频推到 Bulk 端点。真正的视频在另一个开关后面：**LiveView 共享 / 实时画面共享**。打开后，视频走 **USB RNDIS 网卡上的 UDP**：
 
 ```text
 PC RNDIS 网卡：192.168.60.1/24
@@ -37,7 +56,27 @@ PC RNDIS 网卡：192.168.60.1/24
 本地 UDP：     12346
 ```
 
-G3Viewer 实现了这条完整链路：
+这套私有 UDP 协议需要专用握手、分片重组和解码，普通播放器、OBS、Mission Planner 都无法直接打开。G3Viewer 把这段链路完整实现，用户不需要研究协议，也不需要额外硬件。
+
+## 它怎么工作
+
+```text
+Goggles 3
+   │ USB-C（2CA3:0020）
+   ▼
+RNDIS 192.168.60.1/24
+   │ UDP 192.168.60.2:9003 → 本机 12346
+   ▼
+LiveProtocol
+  48 字节握手 / session+XOR / part-count 重组 / 30 字节 ACK
+   │
+   ▼
+H.264 码流
+   ├── PyAV 解码 ──► Tkinter 窗口
+   └── RTSP :8554 ──► FFmpeg / VLC（可选）
+```
+
+G3Viewer 实现的关键环节：
 
 - 48 字节 LiveView 握手、session/XOR、每秒重发；
 - UDP 分片重组、part/count 解码、30 字节 ACK；
